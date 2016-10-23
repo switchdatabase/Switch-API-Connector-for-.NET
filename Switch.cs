@@ -16,6 +16,7 @@ namespace Switch
         public SwitchAuth WriteAccess { get; set; }
         public SwitchAuth ModifyAccess { get; set; }
         public SwitchAuth DeleteAccess { get; set; }
+        public SwitchAuth AdministratorAccess { get; set; }
 
         public void Initialize(DateTime ExpireTime)
         {
@@ -34,6 +35,10 @@ namespace Switch
             if (DeleteAccess != null)
             {
                 DeleteAccess.AccessToken = GetToken(DeleteAccess, ExpireTime);
+            }
+            if (AdministratorAccess != null)
+            {
+                AdministratorAccess.AccessToken = GetToken(AdministratorAccess, ExpireTime);
             }
         }
 
@@ -56,6 +61,28 @@ namespace Switch
             {
                 // TODO : Exception handle
                 return string.Empty;
+            }
+        }
+
+        public string[] Lists(SwitchAuth auth)
+        {
+            WebClient wc = new WebClient();
+            wc.Headers.Add("APIKey", auth.APIKey);
+            wc.Headers.Add("AccessToken", ReadAccess.AccessToken);
+            wc.Headers[HttpRequestHeader.ContentType] = "application/json";
+            wc.Encoding = Encoding.UTF8;
+
+            string response = wc.DownloadString(string.Format("{0}/Lists", APIEndpoint));
+
+            try
+            {
+                dynamic listsResponse = JsonConvert.DeserializeObject(response);
+                return listsResponse.Response.Value;
+            }
+            catch (Exception ex)
+            {
+                // TODO : Exception handle
+                return null;
             }
         }
 
